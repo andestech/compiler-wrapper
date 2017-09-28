@@ -1,0 +1,81 @@
+#! /usr/bin/env python2
+
+import sys
+import os
+import argparse
+
+this_script = os.path.realpath(__file__)
+this_script_path = os.path.dirname(this_script)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--with-arch=', type=str, nargs=1,
+                    help='Path to target C compiler.')
+parser.add_argument('--with-abi=', type=str, nargs=1,
+                    help='Path to target C++ compiler.')
+parser.add_argument('--with-sysroot=', type=str, nargs=1,
+                    help='What target triplet you want to test.')
+parser.add_argument('--target=', type=str, nargs=1,
+                    help='Path to target C compiler.')
+parser.add_argument('--prefix=', type=str, nargs=1,
+                    help='Host C compiler.')
+
+if (len(sys.argv) == 1):
+    parser.print_help()
+
+args = parser.parse_args(sys.argv[1:])
+
+config_log = open("config.log", "w")
+
+config_log.write("Configure options:\n")
+config_log.write("%s\n" % " ".join(map(lambda x: "\"%s\"" % x, sys.argv)))
+
+v = vars(args)
+error = False
+
+# Check options:
+
+for key, val in v.iteritems():
+    print key, val
+    if val is None:
+        v[key] = ''
+    else:
+        v[key] = v[key][0]
+
+config_log.write("\nVars:\n")
+config_log.write("\n".join(map(lambda x:"%s%s"% x, v.iteritems())))
+config_log.write("\n")
+
+
+if error:
+    parser.print_help()
+    sys.exit(1)
+
+def subst_file(fin, fout, replace_vars):
+    with open(fin, 'r') as file :
+        filedata = file.read()
+
+    # Replace the target string
+    for key, val in replace_vars.iteritems():
+        filedata = filedata.replace('@%s@' % key, val)
+
+    # Write the file out again
+    with open(fout, 'w') as file:
+        file.write(filedata)
+
+# Compute relative path between sysroot and prefix
+bin_path = os.path.join(v['prefix='], "bin")
+rel_sysroot = os.path.relpath(v['with_sysroot='], bin_path)
+
+replace_vars = dict()
+replace_vars['ARCH'] = v['with_arch=']
+replace_vars['ABI'] = v['with_abi=']
+replace_vars['TARGET'] = v['target=']
+replace_vars['REL_SYSROOT'] = rel_sysroot
+replace_vars['PREFIX'] = v['prefix=']
+subst_file(os.path.join(this_script_path, 'config.h.in'),
+           os.path.join(os.getcwd(), 'config.h'),
+           replace_vars)
+
+subst_file(os.path.join(this_script_path, 'Makefile.in'),
+           os.path.join(os.getcwd(), 'Makefile'),
+           replace_vars)

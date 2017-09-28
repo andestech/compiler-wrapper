@@ -1,0 +1,22 @@
+PREFIX := @PREFIX@
+TARGET := @TARGET@
+PROG := $(addprefix $(TARGET)-,clang clang++)
+CXXFLAGS := -O3
+SRC := wrapper.cpp
+
+all: $(PROG)
+
+install: $(PROG)
+	cp $(PROG) $(PREFIX)/bin
+
+clean:
+	rm -f $(PROG)
+
+distclean: clean
+	rm config.log Makefile
+
+%-clang: $(SRC)
+	$(CXX) $(CXXFLAGS) -o $@ $< -DCLANGXX=0
+
+%-clang++: $(SRC)
+	$(CXX) $(CXXFLAGS) -o $@ $< -DCLANGXX=1

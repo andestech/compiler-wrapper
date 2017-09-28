@@ -1,0 +1,5 @@
+#define ARCH "@ARCH@"
+#define ABI "@ABI@"
+#define REL_SYSROOT "@REL_SYSROOT@"
+#define TARGET "@TARGET@"
+#define PREFIX "@PREFIX@"
