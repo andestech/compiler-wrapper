@@ -72,6 +72,7 @@ replace_vars['ABI'] = v['with_abi=']
 replace_vars['TARGET'] = v['target=']
 replace_vars['REL_SYSROOT'] = rel_sysroot
 replace_vars['PREFIX'] = v['prefix=']
+replace_vars['SRCDIR'] = this_script_path
 subst_file(os.path.join(this_script_path, 'config.h.in'),
            os.path.join(os.getcwd(), 'config.h'),
            replace_vars)

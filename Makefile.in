@@ -1,8 +1,9 @@
+SRCDIR := @SRCDIR@
 PREFIX := @PREFIX@
 TARGET := @TARGET@
 PROG := $(addprefix $(TARGET)-,clang clang++)
 CXXFLAGS := -O3
-SRC := wrapper.cpp
+SRC := $(SRCDIR)/wrapper.cpp
 
 all: $(PROG)
 
