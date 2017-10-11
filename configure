@@ -18,6 +18,8 @@ parser.add_argument('--target=', type=str, nargs=1,
                     help='Path to target C compiler.')
 parser.add_argument('--prefix=', type=str, nargs=1,
                     help='Host C compiler.')
+parser.add_argument('--with-host-cxx=', type=str, nargs=1,
+                    help='Host C++ compiler.')
 
 if (len(sys.argv) == 1):
     parser.print_help()
@@ -32,14 +34,42 @@ config_log.write("%s\n" % " ".join(map(lambda x: "\"%s\"" % x, sys.argv)))
 v = vars(args)
 error = False
 
+def find_prog(prog):
+    if prog is None:
+        return None
+
+    if os.path.sep in prog:
+        if os.path.exists(prog):
+            return prog
+        else:
+            return None
+    else:
+        paths = os.environ['PATH'].split(':')
+        for path in paths:
+            p = os.path.join(path, prog)
+            if os.path.exists(p):
+                return p
+        return None
+
 # Check options:
 
 for key, val in v.iteritems():
     print key, val
-    if val is None:
-        v[key] = ''
+    if key == 'with_host_cxx=':
+        if val is None:
+            p = find_prog('c++')
+        else:
+            p = find_prog(v[key][0])
+
+        if p is None:
+            print ("`%s` not found!" % val)
+
+        v[key] = p
     else:
-        v[key] = v[key][0]
+        if val is None:
+            v[key] = ''
+        else:
+            v[key] = v[key][0]
 
 config_log.write("\nVars:\n")
 config_log.write("\n".join(map(lambda x:"%s%s"% x, v.iteritems())))
@@ -73,6 +103,7 @@ replace_vars['TARGET'] = v['target=']
 replace_vars['REL_SYSROOT'] = rel_sysroot
 replace_vars['PREFIX'] = v['prefix=']
 replace_vars['SRCDIR'] = this_script_path
+replace_vars['CXX'] = this_script_path
 subst_file(os.path.join(this_script_path, 'config.h.in'),
            os.path.join(os.getcwd(), 'config.h'),
            replace_vars)
