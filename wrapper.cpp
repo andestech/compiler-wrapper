@@ -63,11 +63,14 @@ int main(int argc, const char * const argv[])
 
   new_args[new_argc] = NULL;
 
+#ifdef DEBUG
   printf ("self_path=\"%s\" %s clang_path=%s\n", dir, self_path, clang_path);
 
   for (int i=0;i<new_argc;i++)
     printf ("\"%s\" ", new_args[i]);
   printf("\n");
+#endif
+
   int rv = execvp (clang_path, (char* const*)new_args);
 
   if (rv < 0)
