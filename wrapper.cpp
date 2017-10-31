@@ -87,6 +87,8 @@ int main(int argc, const char * const argv[])
     printf("\n");
   }
 
+  fflush(stdout);
+
   int rv = execvp (clang_path, (char* const*)new_args);
 
   if (rv < 0) {
