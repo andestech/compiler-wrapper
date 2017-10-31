@@ -20,37 +20,40 @@ int main(int argc, const char * const argv[])
   bool verbose = false;
   for (int i = 0; i < argc; ++i) {
     if ((strcmp (argv[i], "-v") == 0) ||
-        (strcmp (argv[i], "--verbose") == 0))
+        (strcmp (argv[i], "--verbose") == 0)) {
       verbose = true;
+    }
   }
 
   const char *prog;
-  if (CLANGXX)
+  if (CLANGXX) {
     prog = "clang++";
-  else
+  } else {
     prog = "clang";
+  }
 
   std::vector<std::string> extra_arg_vec;
 
   extra_arg_vec.push_back("-Wno-unused-command-line-argument");
 
-  if (strlen(ARCH))
+  if (strlen(ARCH)) {
     extra_arg_vec.push_back("-march=" ARCH);
+  }
 
-  if (strlen(ABI))
+  if (strlen(ABI)) {
     extra_arg_vec.push_back("-mabi=" ABI);
+  }
 
-  if (strlen(TARGET)){
+  if (strlen(TARGET)) {
     extra_arg_vec.push_back("--target=" TARGET);
   }
 
-  if (strlen(REL_SYSROOT))
-    {
-       std::string sysroot = dir;
-       sysroot += "/";
-       sysroot += REL_SYSROOT;
-       extra_arg_vec.push_back("--sysroot=" + sysroot);
-    }
+  if (strlen(REL_SYSROOT)) {
+    std::string sysroot = dir;
+    sysroot += "/";
+    sysroot += REL_SYSROOT;
+    extra_arg_vec.push_back("--sysroot=" + sysroot);
+  }
 
   int new_argc = argc + extra_arg_vec.size();
   const char **new_args = new const char *[new_argc + 1];
@@ -60,15 +63,16 @@ int main(int argc, const char * const argv[])
   strcat (clang_path, "/");
   strcat (clang_path, prog);
 
-
   new_args[0] = clang_path;
 
   int sz = extra_arg_vec.size();
-  for (int i = 0; i < sz; ++i)
+  for (int i = 0; i < sz; ++i) {
     new_args[i + 1] = extra_arg_vec[i].c_str();
+  }
 
-  for (int i = 1; i < argc; ++i)
+  for (int i = 1; i < argc; ++i) {
     new_args[i + sz] = argv[i];
+  }
 
   new_args[new_argc] = NULL;
 
@@ -77,15 +81,17 @@ int main(int argc, const char * const argv[])
 #endif
 
   if (verbose) {
-    for (int i=0;i<new_argc;i++)
+    for (int i=0;i<new_argc;i++) {
       printf ("\"%s\" ", new_args[i]);
+    }
     printf("\n");
   }
 
   int rv = execvp (clang_path, (char* const*)new_args);
 
-  if (rv < 0)
+  if (rv < 0) {
     fprintf (stderr, "%s not found %s\n", prog, clang_path);
+  }
 
   return rv;
 }
