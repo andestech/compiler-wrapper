@@ -17,6 +17,13 @@ int main(int argc, const char * const argv[])
 
   char *dir = dirname(self_path);
 
+  bool verbose = false;
+  for (int i = 0; i < argc; ++i) {
+    if ((strcmp (argv[i], "-v") == 0) ||
+        (strcmp (argv[i], "--verbose") == 0))
+      verbose = true;
+  }
+
   const char *prog;
   if (CLANGXX)
     prog = "clang++";
@@ -67,11 +74,13 @@ int main(int argc, const char * const argv[])
 
 #ifdef DEBUG
   printf ("self_path=\"%s\" %s clang_path=%s\n", dir, self_path, clang_path);
-
-  for (int i=0;i<new_argc;i++)
-    printf ("\"%s\" ", new_args[i]);
-  printf("\n");
 #endif
+
+  if (verbose) {
+    for (int i=0;i<new_argc;i++)
+      printf ("\"%s\" ", new_args[i]);
+    printf("\n");
+  }
 
   int rv = execvp (clang_path, (char* const*)new_args);
 
