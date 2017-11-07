@@ -9,6 +9,7 @@ SRC := $(SRCDIR)/wrapper.cpp
 all: $(PROG)
 
 install: $(PROG)
+	mkdir -p $(PREFIX)/bin
 	cp $(PROG) $(PREFIX)/bin
 
 clean:
