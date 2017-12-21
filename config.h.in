@@ -3,3 +3,4 @@
 #define REL_SYSROOT "@REL_SYSROOT@"
 #define TARGET "@TARGET@"
 #define PREFIX "@PREFIX@"
+#define LIBC "@LIBC@"
