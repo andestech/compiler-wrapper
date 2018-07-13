@@ -14,6 +14,8 @@ parser.add_argument('--with-abi=', type=str, nargs=1,
                     help='Path to target C++ compiler.')
 parser.add_argument('--with-libc=', type=str, nargs=1,
                     help='Set the default libc.')
+parser.add_argument('--with-ld=', type=str, nargs=1,
+                    help='Set the default linker.')
 parser.add_argument('--with-sysroot=', type=str, nargs=1,
                     help='What target triplet you want to test.')
 parser.add_argument('--target=', type=str, nargs=1,
@@ -102,6 +104,7 @@ replace_vars = dict()
 replace_vars['ARCH'] = v['with_arch=']
 replace_vars['ABI'] = v['with_abi=']
 replace_vars['LIBC'] = v['with_libc=']
+replace_vars['LD'] = v['with_ld=']
 replace_vars['TARGET'] = v['target=']
 replace_vars['REL_SYSROOT'] = rel_sysroot
 replace_vars['PREFIX'] = v['prefix=']

@@ -4,3 +4,4 @@
 #define TARGET "@TARGET@"
 #define PREFIX "@PREFIX@"
 #define LIBC "@LIBC@"
+#define LD "@LD@"
