@@ -5,3 +5,4 @@
 #define PREFIX "@PREFIX@"
 #define LIBC "@LIBC@"
 #define LD "@LD@"
+#define MULTI_LIB_LIST "@MULTI_LIB_LIST@"

@@ -56,6 +56,10 @@ int main(int argc, const char * const argv[])
     extra_arg_vec.push_back("-fuse-ld=" LD);
   }
 
+  if (strlen(MULTI_LIB_LIST)) {
+    extra_arg_vec.push_back("--with-multi-lib=" MULTI_LIB_LIST);
+  }
+
   if (strlen(REL_SYSROOT)) {
     std::string sysroot = dir;
     sysroot += "/";
