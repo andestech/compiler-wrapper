@@ -52,6 +52,10 @@ int main(int argc, const char * const argv[])
     extra_arg_vec.push_back("-mlibc=" LIBC);
   }
 
+  if (strcmp(LIBC, "mculib") == 0) {
+    extra_arg_vec.push_back("-fno-math-errno");
+  }
+
   if (strlen(LD)) {
     extra_arg_vec.push_back("-fuse-ld=" LD);
   }
