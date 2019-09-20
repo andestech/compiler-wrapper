@@ -56,6 +56,10 @@ int main(int argc, const char * const argv[])
     extra_arg_vec.push_back("-fno-math-errno");
   }
 
+  if (!strcmp(LIBC, "mculib") || !strcmp(LIBC, "newlib")  ) {
+    extra_arg_vec.push_back("-fno-delete-null-pointer-checks");
+  }
+
   if (strlen(LD)) {
     extra_arg_vec.push_back("-fuse-ld=" LD);
   }
