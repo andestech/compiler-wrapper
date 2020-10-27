@@ -26,6 +26,8 @@ parser.add_argument('--with-host-cxx=', type=str, nargs=1,
                     help='Host C++ compiler.')
 parser.add_argument('--with-multilib-list=', type=str, nargs=1,
                     help='multi-lib list.')
+parser.add_argument('--with-extra-flags=', type=str, nargs=1,
+                    help='Set extra flags')
 
 if (len(sys.argv) == 1):
     parser.print_help()
@@ -113,6 +115,7 @@ replace_vars['PREFIX'] = v['prefix=']
 replace_vars['SRCDIR'] = this_script_path
 replace_vars['CXX'] = v['with_host_cxx=']
 replace_vars['MULTI_LIB_LIST'] = v['with_multilib_list=']
+replace_vars['EXTRA_FLAGS'] = v['with_extra_flags=']
 subst_file(os.path.join(this_script_path, 'config.h.in'),
            os.path.join(os.getcwd(), 'config.h'),
            replace_vars)
