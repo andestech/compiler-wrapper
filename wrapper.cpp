@@ -54,6 +54,7 @@ int main(int argc, const char * const argv[])
 
   if (strcmp(LIBC, "mculib") == 0) {
     extra_arg_vec.push_back("-fno-math-errno");
+    extra_arg_vec.push_back("-mriscv-iprintf");
   }
 
   if (!strcmp(LIBC, "mculib") || !strcmp(LIBC, "newlib")  ) {
