@@ -35,6 +35,7 @@ int main(int argc, const char * const argv[])
   std::vector<std::string> extra_arg_vec;
 
   extra_arg_vec.push_back("-Wno-unused-command-line-argument");
+  extra_arg_vec.push_back("-ffinite-loops");
 
   if (strlen(ARCH)) {
     extra_arg_vec.push_back("-march=" ARCH);
