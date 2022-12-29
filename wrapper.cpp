@@ -18,6 +18,11 @@ int main(int argc, const char * const argv[])
   char *dir = dirname(self_path);
 
   bool verbose = false;
+  std::vector<std::string> extra_arg_vec;
+  if (strcmp(LIBC, "mculib") == 0) {
+    extra_arg_vec.push_back("-fno-math-errno");
+  }
+
   for (int i = 0; i < argc; ++i) {
     if ((strcmp (argv[i], "-v") == 0) ||
         (strcmp (argv[i], "--verbose") == 0)) {
@@ -31,8 +36,6 @@ int main(int argc, const char * const argv[])
   } else {
     prog = "clang";
   }
-
-  std::vector<std::string> extra_arg_vec;
 
   extra_arg_vec.push_back("-Wno-unused-command-line-argument");
   extra_arg_vec.push_back("-ffinite-loops");
@@ -54,7 +57,6 @@ int main(int argc, const char * const argv[])
   }
 
   if (strcmp(LIBC, "mculib") == 0) {
-    extra_arg_vec.push_back("-fno-math-errno");
     extra_arg_vec.push_back("-mriscv-iprintf");
   }
 
