@@ -7,13 +7,23 @@
 #include <string>
 #include "config.h"
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 int main(int argc, const char * const argv[])
 {
   char self_path[PATH_MAX];
+
+#ifdef __APPLE__
+  uint32_t size = PATH_MAX-1;
+  _NSGetExecutablePath(self_path, &size);
+#else
   ssize_t len = readlink("/proc/self/exe", self_path, sizeof(self_path) - 1);
   if (len != -1) {
     self_path[len] = '\0';
   }
+#endif
 
   char *dir = dirname(self_path);
 
@@ -89,7 +99,11 @@ int main(int argc, const char * const argv[])
   const char **new_args = new const char *[new_argc + 1];
   char *clang_path = new char[strlen(self_path) + strlen(prog) + 2];
 
+#ifdef __APPLE__
+  strcpy (clang_path, dir);
+#else
   strcpy (clang_path, self_path);
+#endif
   strcat (clang_path, "/");
   strcat (clang_path, prog);
 
