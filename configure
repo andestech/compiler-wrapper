@@ -28,6 +28,8 @@ parser.add_argument('--with-multilib-list=', type=str, nargs=1,
                     help='multi-lib list.')
 parser.add_argument('--with-extra-flags=', type=str, nargs=1,
                     help='Set extra flags')
+parser.add_argument('--compiler-wrapper=', type=str, nargs=1,
+                    help='Specify to wrapper which compiler')
 
 if (len(sys.argv) == 1):
     parser.print_help()
@@ -116,6 +118,7 @@ replace_vars['SRCDIR'] = this_script_path
 replace_vars['CXX'] = v['with_host_cxx=']
 replace_vars['MULTI_LIB_LIST'] = v['with_multilib_list=']
 replace_vars['EXTRA_FLAGS'] = v['with_extra_flags=']
+replace_vars['COMPILER_WRAPPER'] = v['compiler_wrapper=']
 subst_file(os.path.join(this_script_path, 'config.h.in'),
            os.path.join(os.getcwd(), 'config.h'),
            replace_vars)

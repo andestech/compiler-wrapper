@@ -2,9 +2,17 @@ SRCDIR := @SRCDIR@
 PREFIX := @PREFIX@
 TARGET := @TARGET@
 CXX := @CXX@
-PROG := $(addprefix $(TARGET)-,clang clang++)
 CXXFLAGS := -O3 -I.
 SRC := $(SRCDIR)/wrapper.cpp
+COMPILER_WRAPPER := @COMPILER_WRAPPER@
+
+ifeq ($(COMPILER_WRAPPER), gcc-wrapper)
+PROG := $(addprefix $(TARGET)-,gcc g++ c++)
+else ifeq ($(COMPILER_WRAPPER), clang-wrapper)
+PROG := $(addprefix $(TARGET)-,clang clang++)
+else ifeq ($(COMPILER_WRAPPER), clang-wrapper)
+$(error "COMPILER_WRAPPER must be specified")
+endif
 
 all: $(PROG)
 
@@ -23,3 +31,12 @@ distclean: clean
 
 %-clang++: $(SRC)
 	$(CXX) $(CXXFLAGS) -o $@ $< -DCLANGXX=1
+
+%-gcc: $(SRC)
+	$(CXX) $(CXXFLAGS) -o $@ $< -DGXX=0
+
+%-g++: $(SRC)
+	$(CXX) $(CXXFLAGS) -o $@ $< -DGXX=1
+
+%-c++: $(SRC)
+	$(CXX) $(CXXFLAGS) -o $@ $< -DGXX=1

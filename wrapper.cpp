@@ -28,11 +28,6 @@ int main(int argc, const char * const argv[])
   char *dir = dirname(self_path);
 
   bool verbose = false;
-  std::vector<std::string> extra_arg_vec;
-  if (strcmp(LIBC, "mculib") == 0) {
-    extra_arg_vec.push_back("-fno-math-errno");
-  }
-
   for (int i = 0; i < argc; ++i) {
     if ((strcmp (argv[i], "-v") == 0) ||
         (strcmp (argv[i], "--verbose") == 0)) {
@@ -40,13 +35,12 @@ int main(int argc, const char * const argv[])
     }
   }
 
-  const char *prog;
-  if (CLANGXX) {
-    prog = "clang++";
-  } else {
-    prog = "clang";
+  std::vector<std::string> extra_arg_vec;
+  if (strcmp(LIBC, "mculib") == 0) {
+    extra_arg_vec.push_back("-fno-math-errno");
   }
 
+#ifdef CLANGXX
   extra_arg_vec.push_back("-Wno-unused-command-line-argument");
   extra_arg_vec.push_back("-ffinite-loops");
 
@@ -94,20 +88,38 @@ int main(int argc, const char * const argv[])
     sysroot += REL_SYSROOT;
     extra_arg_vec.push_back("--sysroot=" + sysroot);
   }
+#endif
+
+
+  const char *prog;
+#ifdef CLANGXX
+  if (CLANGXX) {
+    prog = "clang++";
+  } else {
+    prog = "clang";
+  }
+#endif
+#ifdef GXX
+  if (GXX) {
+    prog = TARGET "-g++.gnu";
+  } else {
+    prog = TARGET "-gcc.gnu";
+  }
+#endif
 
   int new_argc = argc + extra_arg_vec.size();
   const char **new_args = new const char *[new_argc + 1];
-  char *clang_path = new char[strlen(self_path) + strlen(prog) + 2];
+  char *cc_path = new char[strlen(self_path) + strlen(prog) + 2];
 
 #ifdef __APPLE__
-  strcpy (clang_path, dir);
+  strcpy (cc_path, dir);
 #else
-  strcpy (clang_path, self_path);
+  strcpy (cc_path, self_path);
 #endif
-  strcat (clang_path, "/");
-  strcat (clang_path, prog);
+  strcat (cc_path, "/");
+  strcat (cc_path, prog);
 
-  new_args[0] = clang_path;
+  new_args[0] = cc_path;
 
   int sz = extra_arg_vec.size();
   for (int i = 0; i < sz; ++i) {
@@ -121,11 +133,11 @@ int main(int argc, const char * const argv[])
   new_args[new_argc] = NULL;
 
 #ifdef DEBUG
-  printf ("self_path=\"%s\" %s clang_path=%s\n", dir, self_path, clang_path);
+  printf ("self_path=\"%s\" %s cc_path=%s\n", dir, self_path, cc_path);
 #endif
 
   if (verbose) {
-    for (int i=0;i<new_argc;i++) {
+    for (int i = 0; i < new_argc; i++) {
       printf ("\"%s\" ", new_args[i]);
     }
     printf("\n");
@@ -133,10 +145,10 @@ int main(int argc, const char * const argv[])
 
   fflush(stdout);
 
-  int rv = execvp (clang_path, (char* const*)new_args);
+  int rv = execvp (cc_path, (char* const*)new_args);
 
   if (rv < 0) {
-    fprintf (stderr, "%s not found %s\n", prog, clang_path);
+    fprintf (stderr, "%s not found %s\n", prog, cc_path);
   }
 
   return rv;
