@@ -7,6 +7,10 @@
 #include <string>
 #include "config.h"
 
+/* Get libiberty declarations.  */
+#define HAVE_DECL_BASENAME 1
+#include "libiberty.h"
+
 std::string getMainExecutableImpl(const char *argv0, void *MainAddr);
 
 int main(int argc, const char * const argv[])

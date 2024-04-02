@@ -4,6 +4,12 @@ TARGET := @TARGET@
 EXEEXT := @EXEEXT@
 CXX := @CXX@
 CXXFLAGS := -O3 -I.
+LIBIBERTY_INCLUDE := @LIBIBERTY_INCLUDE@
+ifneq ($(LIBIBERTY_INCLUDE), )
+  CXXFLAGS += -I$(LIBIBERTY_INCLUDE)
+endif
+LIBIBERTY_A := @LIBIBERTY_A@
+LDFLAGS := $(LIBIBERTY_A)
 SRC := $(SRCDIR)/wrapper.cpp
 OBJS := path.o
 
@@ -33,16 +39,16 @@ distclean: clean
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 %-clang$(EXEEXT): $(SRC) $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ -DCLANGXX=0
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -DCLANGXX=0
 
 %-clang++$(EXEEXT): $(SRC) $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ -DCLANGXX=1
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -DCLANGXX=1
 
 %-gcc$(EXEEXT): $(SRC) $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=0
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -DGXX=0
 
 %-g++$(EXEEXT): $(SRC) $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=1
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -DGXX=1
 
 %-c++$(EXEEXT): $(SRC) $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=1
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -DGXX=1
