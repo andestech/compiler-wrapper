@@ -7,24 +7,19 @@
 #include <string>
 #include "config.h"
 
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
+std::string getMainExecutableImpl(const char *argv0, void *MainAddr);
 
 int main(int argc, const char * const argv[])
 {
   char self_path[PATH_MAX];
 
-#ifdef __APPLE__
-  uint32_t size = PATH_MAX-1;
-  _NSGetExecutablePath(self_path, &size);
-#else
-  ssize_t len = readlink("/proc/self/exe", self_path, sizeof(self_path) - 1);
-  if (len != -1) {
-    self_path[len] = '\0';
-  }
-#endif
+  std::string exe_path = getMainExecutableImpl(nullptr, nullptr);
 
+  strncpy(self_path, exe_path.c_str(), PATH_MAX);
+
+  /* From man page,
+   * Both dirname() and basename() may modify the contents of path, so it may
+   * be desirable to pass a copy when calling one of these functions.  */
   char *dir = dirname(self_path);
 
   bool verbose = false;
@@ -111,11 +106,7 @@ int main(int argc, const char * const argv[])
   const char **new_args = new const char *[new_argc + 1];
   char *cc_path = new char[strlen(self_path) + strlen(prog) + 2];
 
-#ifdef __APPLE__
   strcpy (cc_path, dir);
-#else
-  strcpy (cc_path, self_path);
-#endif
   strcat (cc_path, "/");
   strcat (cc_path, prog);
 

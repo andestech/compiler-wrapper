@@ -4,6 +4,8 @@ TARGET := @TARGET@
 CXX := @CXX@
 CXXFLAGS := -O3 -I.
 SRC := $(SRCDIR)/wrapper.cpp
+OBJS := path.o
+
 COMPILER_WRAPPER := @COMPILER_WRAPPER@
 
 ifeq ($(COMPILER_WRAPPER), gcc-wrapper)
@@ -26,17 +28,20 @@ clean:
 distclean: clean
 	rm config.log Makefile
 
-%-clang: $(SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $< -DCLANGXX=0
+%.o: $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%-clang++: $(SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $< -DCLANGXX=1
+%-clang: $(SRC) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -DCLANGXX=0
 
-%-gcc: $(SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $< -DGXX=0
+%-clang++: $(SRC) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -DCLANGXX=1
 
-%-g++: $(SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $< -DGXX=1
+%-gcc: $(SRC) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=0
 
-%-c++: $(SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $< -DGXX=1
+%-g++: $(SRC) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=1
+
+%-c++: $(SRC) $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=1
