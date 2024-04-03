@@ -102,23 +102,27 @@ def subst_file(fin, fout, replace_vars):
     with open(fout, 'w') as file:
         file.write(filedata)
 
-# Compute relative path between sysroot and prefix
-bin_path = os.path.join(v['prefix='], "bin")
-rel_sysroot = os.path.relpath(v['with_sysroot='], bin_path)
-
 replace_vars = dict()
 replace_vars['ARCH'] = v['with_arch=']
 replace_vars['ABI'] = v['with_abi=']
 replace_vars['LIBC'] = v['with_libc=']
 replace_vars['LD'] = v['with_ld=']
 replace_vars['TARGET'] = v['target=']
-replace_vars['REL_SYSROOT'] = rel_sysroot
 replace_vars['PREFIX'] = v['prefix=']
 replace_vars['SRCDIR'] = this_script_path
 replace_vars['CXX'] = v['with_host_cxx=']
 replace_vars['MULTI_LIB_LIST'] = v['with_multilib_list=']
 replace_vars['EXTRA_FLAGS'] = v['with_extra_flags=']
 replace_vars['COMPILER_WRAPPER'] = v['compiler_wrapper=']
+
+# Compute relative path between sysroot and prefix
+bin_path = os.path.join(v['prefix='], "bin")
+if v['with_sysroot=']:
+    rel_sysroot = os.path.relpath(v['with_sysroot='], bin_path)
+    replace_vars['REL_SYSROOT'] = rel_sysroot
+else:
+    replace_vars['REL_SYSROOT'] = '../sysroot'
+
 subst_file(os.path.join(this_script_path, 'config.h.in'),
            os.path.join(os.getcwd(), 'config.h'),
            replace_vars)
