@@ -1,6 +1,7 @@
 SRCDIR := @SRCDIR@
 PREFIX := @PREFIX@
 TARGET := @TARGET@
+EXEEXT := @EXEEXT@
 CXX := @CXX@
 CXXFLAGS := -O3 -I.
 SRC := $(SRCDIR)/wrapper.cpp
@@ -9,10 +10,10 @@ OBJS := path.o
 COMPILER_WRAPPER := @COMPILER_WRAPPER@
 
 ifeq ($(COMPILER_WRAPPER), gcc-wrapper)
-PROG := $(addprefix $(TARGET)-,gcc g++ c++)
+PROG := $(addsuffix $(EXEEXT), $(addprefix $(TARGET)-,gcc g++ c++))
 else ifeq ($(COMPILER_WRAPPER), clang-wrapper)
-PROG := $(addprefix $(TARGET)-,clang clang++)
-else ifeq ($(COMPILER_WRAPPER), clang-wrapper)
+PROG := $(addsuffix $(EXEEXT), $(addprefix $(TARGET)-,clang clang++))
+else
 $(error "COMPILER_WRAPPER must be specified")
 endif
 
@@ -31,17 +32,17 @@ distclean: clean
 %.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%-clang: $(SRC) $(OBJS)
+%-clang$(EXEEXT): $(SRC) $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -DCLANGXX=0
 
-%-clang++: $(SRC) $(OBJS)
+%-clang++$(EXEEXT): $(SRC) $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -DCLANGXX=1
 
-%-gcc: $(SRC) $(OBJS)
+%-gcc$(EXEEXT): $(SRC) $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=0
 
-%-g++: $(SRC) $(OBJS)
+%-g++$(EXEEXT): $(SRC) $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=1
 
-%-c++: $(SRC) $(OBJS)
+%-c++$(EXEEXT): $(SRC) $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ -DGXX=1

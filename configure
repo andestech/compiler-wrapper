@@ -113,7 +113,13 @@ replace_vars['SRCDIR'] = this_script_path
 replace_vars['CXX'] = v['with_host_cxx=']
 replace_vars['MULTI_LIB_LIST'] = v['with_multilib_list=']
 replace_vars['EXTRA_FLAGS'] = v['with_extra_flags=']
-replace_vars['COMPILER_WRAPPER'] = v['compiler_wrapper=']
+mingw_prefix = 'mingw-'
+if v['compiler_wrapper='].startswith(mingw_prefix):
+    replace_vars['COMPILER_WRAPPER'] = v['compiler_wrapper='][len(mingw_prefix):]
+    replace_vars['EXEEXT'] = '.exe'
+else:
+    replace_vars['COMPILER_WRAPPER'] = v['compiler_wrapper=']
+    replace_vars['EXEEXT'] = ''
 
 # Compute relative path between sysroot and prefix
 bin_path = os.path.join(v['prefix='], "bin")

@@ -54,6 +54,32 @@ std::string getMainExecutableImpl(const char *argv0, void *MainAddr) {
   // Fall back to the classical detection.
   //if (getprogpath(exe_path, argv0))
   //  return exe_path;
+#elif defined(__MINGW32__)
+  SmallVector<wchar_t, MAX_PATH> PathName;
+  PathName.resize_for_overwrite(PathName.capacity());
+  DWORD Size = ::GetModuleFileNameW(NULL, PathName.data(), PathName.size());
+
+  // A zero return value indicates a failure other than insufficient space.
+  if (Size == 0)
+    return "";
+
+  // Insufficient space is determined by a return value equal to the size of
+  // the buffer passed in.
+  if (Size == PathName.capacity())
+    return "";
+
+  // On success, GetModuleFileNameW returns the number of characters written to
+  // the buffer not including the NULL terminator.
+  PathName.truncate(Size);
+
+  // Convert the result from UTF-16 to UTF-8.
+  SmallVector<char, MAX_PATH> PathNameUTF8;
+  if (UTF16ToUTF8(PathName.data(), PathName.size(), PathNameUTF8))
+    return "";
+
+  //llvm::sys::path::make_preferred(PathNameUTF8);
+  std::replace(PathNameUTF8.begin(), PathNameUTF8.end(), '\\', '/');
+  return std::string(PathNameUTF8.data());
 #else
 #error GetMainExecutable is not implemented on this host yet.
 #endif

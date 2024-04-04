@@ -89,16 +89,16 @@ int main(int argc, const char * const argv[])
   const char *prog;
 #ifdef CLANGXX
   if (CLANGXX) {
-    prog = "clang++";
+    prog = "clang++" EXEEXT;
   } else {
-    prog = "clang";
+    prog = "clang" EXEEXT;
   }
 #endif
 #ifdef GXX
   if (GXX) {
-    prog = TARGET "-g++.gnu";
+    prog = TARGET "-g++.gnu" EXEEXT;
   } else {
-    prog = TARGET "-gcc.gnu";
+    prog = TARGET "-gcc.gnu" EXEEXT;
   }
 #endif
 

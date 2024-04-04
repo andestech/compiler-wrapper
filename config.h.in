@@ -7,3 +7,4 @@
 #define LD "@LD@"
 #define MULTI_LIB_LIST "@MULTI_LIB_LIST@"
 #define EXTRA_FLAGS "@EXTRA_FLAGS@"
+#define EXEEXT "@EXEEXT@"
