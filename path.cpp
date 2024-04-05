@@ -12,40 +12,6 @@
 #include <windows.h>
 #endif
 
-#if defined(_WIN32)
-static
-int UTF16ToCodePage(unsigned codepage, const wchar_t *utf16,
-                                size_t utf16_len,
-                                char *converted) {
-  if (utf16_len) {
-    // Get length.
-    int len = ::WideCharToMultiByte(codepage, 0, utf16, utf16_len, converted,
-                                    0, NULL, NULL);
-
-    if (len == 0) {
-      return -1;
-    }
-
-    // Now do the actual conversion.
-    len = ::WideCharToMultiByte(codepage, 0, utf16, utf16_len, converted,
-                                MAX_PATH, NULL, NULL);
-
-    if (len == 0) {
-      return -1;
-    }
-    // Make the new string null terminated.
-    converted[len] = '\0';
-  }
-
-  return 0;
-}
-
-int UTF16ToUTF8(const wchar_t *utf16, size_t utf16_len,
-                            char *utf8) {
-  return UTF16ToCodePage(CP_UTF8, utf16, utf16_len, utf8);
-}
-#endif
-
 /// GetMainExecutable - Return the path to the main executable, given the
 /// value of argv[0] from program startup.
 std::string getMainExecutableImpl(const char *argv0, void *MainAddr) {
@@ -95,35 +61,16 @@ std::string getMainExecutableImpl(const char *argv0, void *MainAddr) {
   //if (getprogpath(exe_path, argv0))
   //  return exe_path;
 #elif defined(_WIN32)
-  // The first argument may contain just the name of the executable (e.g.,
-  // "clang") rather than the full path, so swap it with the full path.
-  wchar_t ModuleName[MAX_PATH];
-  size_t Length = ::GetModuleFileNameW(NULL, ModuleName, MAX_PATH);
-  if (Length == 0 || Length == MAX_PATH) {
+  char exe_path[MAX_PATH];
+
+  DWORD len = ::GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+  if (len == 0 || len == MAX_PATH) {
     return "";
   }
 
-  // If the first argument is a shortened (8.3) name (which is possible even
-  // if we got the module name), the driver will have trouble distinguishing it
-  // (e.g., clang.exe v. clang++.exe), so expand it now.
-  Length = GetLongPathNameW(ModuleName, ModuleName, MAX_PATH);
-  if (Length == 0)
-    return "";
-  if (Length > MAX_PATH) {
-    // We're not going to try to deal with paths longer than MAX_PATH, so we'll
-    // treat this as an error.  GetLastError() returns ERROR_SUCCESS, which
-    // isn't useful, so we'll hardcode an appropriate error value.
-    return "";
-  }
-
-  char ModuleNameUTF8[MAX_PATH];
-  int EC = UTF16ToUTF8(ModuleName, Length, ModuleNameUTF8);
-  if (EC)
-    return "";
-
-  std::string StrModuleNameUTF8(ModuleNameUTF8);
-  std::replace(StrModuleNameUTF8.begin(), StrModuleNameUTF8.end(), '\\', '/');
-  return StrModuleNameUTF8;
+  std::string str(exe_path);
+  std::replace(str.begin(), str.end(), '\\', '/');
+  return str;
 #else
 #error GetMainExecutable is not implemented on this host yet.
 #endif
