@@ -1,6 +1,7 @@
 #include <limits.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <string>
 
 #ifdef __APPLE__
@@ -120,7 +121,9 @@ std::string getMainExecutableImpl(const char *argv0, void *MainAddr) {
   if (EC)
     return "";
 
-  return std::string(ModuleNameUTF8);
+  std::string StrModuleNameUTF8(ModuleNameUTF8);
+  std::replace(StrModuleNameUTF8.begin(), StrModuleNameUTF8.end(), '\\', '/');
+  return StrModuleNameUTF8;
 #else
 #error GetMainExecutable is not implemented on this host yet.
 #endif
