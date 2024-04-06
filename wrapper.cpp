@@ -7,9 +7,12 @@
 #include <string>
 #include "config.h"
 
+#ifdef _WIN32
 /* Get libiberty declarations.  */
 #define HAVE_DECL_BASENAME 1
 #include "libiberty.h"
+#include "../gcc/system.h"
+#endif
 
 std::string getMainExecutableImpl(const char *argv0, void *MainAddr);
 
@@ -140,6 +143,7 @@ int main(int argc, const char * const argv[])
 
   fflush(stdout);
 
+#ifndef _WIN32
   int rv = execvp (cc_path, (char* const*)new_args);
 
   if (rv < 0) {
@@ -147,4 +151,41 @@ int main(int argc, const char * const argv[])
   }
 
   return rv;
+#else
+  struct pex_obj *pex;
+  const char *err_msg;
+  int pex_flags = PEX_USE_PIPES | PEX_LAST;
+  int status = 0;
+  int err = 0;
+  int exit_code = -1;
+
+  pex = pex_init (0, argv[0], NULL);
+
+  if (pex == NULL) {
+    fprintf (stderr, "%s fail to execute %s\n", prog, cc_path);
+    return -1;
+  }
+
+  err_msg = pex_one (pex_flags, cc_path, (char* const*)new_args, NULL,
+                     NULL, NULL, &status, &err);
+
+  if (err_msg)
+    fprintf (stderr, "Error running %s: %s\n", cc_path, err_msg);
+  else if (status)
+    {
+      if (WIFSIGNALED (status))
+        {
+          int sig = WTERMSIG (status);
+          fprintf (stderr, "%s terminated with signal %d [%s]%s\n",
+                   cc_path, sig, strsignal (sig),
+                   WCOREDUMP (status) ? ", core dumped" : "");
+        }
+      else if (WIFEXITED (status))
+        exit_code = WEXITSTATUS (status);
+    }
+  else
+    exit_code = 0;
+
+  return exit_code;
+#endif
 }
