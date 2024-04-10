@@ -11,7 +11,7 @@
 /* Get libiberty declarations.  */
 #define HAVE_DECL_BASENAME 1
 #include "libiberty.h"
-#include "../gcc/system.h"
+#include "gcc_system.h"
 #endif
 
 std::string getMainExecutableImpl(const char *argv0, void *MainAddr);
