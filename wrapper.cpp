@@ -92,6 +92,11 @@ int main(int argc, const char * const argv[])
   }
 #endif
 
+#ifdef GXX
+  if (strlen(ARCH)) {
+    extra_arg_vec.push_back("-march=" ARCH);
+  }
+#endif
 
   const char *prog;
 #ifdef CLANGXX
