@@ -9,7 +9,7 @@ ifneq ($(LIBIBERTY_INCLUDE), )
   CXXFLAGS += -I$(LIBIBERTY_INCLUDE)
 endif
 LIBIBERTY_A := @LIBIBERTY_A@
-LDFLAGS := $(LIBIBERTY_A)
+LDFLAGS := $(LIBIBERTY_A) -static
 SRC := $(SRCDIR)/wrapper.cpp
 OBJS := path.o
 
