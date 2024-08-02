@@ -9,7 +9,14 @@ ifneq ($(LIBIBERTY_INCLUDE), )
   CXXFLAGS += -I$(LIBIBERTY_INCLUDE)
 endif
 LIBIBERTY_A := @LIBIBERTY_A@
-LDFLAGS := $(LIBIBERTY_A) -static
+
+OS := $(shell uname)
+ifeq ($(OS), Darwin)
+  LDFLAGS := $(LIBIBERTY_A)
+else
+  LDFLAGS := $(LIBIBERTY_A) -static
+endif
+
 SRC := $(SRCDIR)/wrapper.cpp
 OBJS := path.o
 
