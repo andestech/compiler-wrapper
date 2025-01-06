@@ -1,11 +1,14 @@
+#include "config.h"
+#include <algorithm>
+#include <iostream>
+#include <regex>
+#include <libgen.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
-#include <limits.h>
-#include <libgen.h>
-#include <vector>
 #include <string>
-#include "config.h"
+#include <unistd.h>
+#include <vector>
 
 #ifdef _WIN32
 /* Get libiberty declarations.  */
@@ -15,6 +18,236 @@
 #endif
 
 std::string getMainExecutableImpl(const char *argv0, void *MainAddr);
+
+/* CPU names must match according entries in
+ * riscv-cores.def/NDSRISCVProcessors.td for GCC/LLVM. */
+static bool isAndes23Series(std::string const &cpu) {
+  if (cpu == "d23")
+    return true;
+  return false;
+}
+
+static bool isAndes45Series(std::string const &cpu) {
+  if (cpu == "a45" || cpu == "ax45" || cpu == "ax45mpv" || cpu == "n45" ||
+      cpu == "n45f" || cpu == "nx45" || cpu == "nx45v" || cpu == "d45" ||
+      cpu == "d45f")
+    return true;
+  return false;
+}
+
+static bool isAndes60Series(std::string const &cpu) {
+  if (cpu == "ax60" || cpu == "ax65")
+    return true;
+  return false;
+}
+
+static bool isAndes66Series(std::string const &cpu) {
+  if (cpu == "ax66")
+    return true;
+  return false;
+}
+
+/* Append -m* options to ARG_VEC based on CPU. */
+static void append_cpu_options(std::string const &cpu,
+                               std::vector<std::string> &arg_vec) {
+  static const std::vector<std::string> andes_23_series = {
+      "-mext-zc", "-mext-zbabcs", "-mext-cmo"};
+  static const std::vector<std::string> andes_45_series = {
+      "-mext-zvlsseg", "-mcmov"};
+  static const std::vector<std::string> andes_60_series = {
+      "-mext-zbabcs", "-mext-zkns", "-mext-cmo", "-mext-svinval", "-mcmov"};
+  static const std::vector<std::string> andes_66_series = {
+      "-mext-cmo", "-mext-svinval"};
+
+
+  auto add_options = [&arg_vec](const std::vector<std::string> &table) -> void {
+    for (auto E : table)
+      arg_vec.push_back(E);
+  };
+
+  if (isAndes23Series(cpu))
+    add_options(andes_23_series);
+  else if (isAndes45Series(cpu))
+    add_options(andes_45_series);
+  else if (isAndes60Series(cpu))
+    add_options(andes_60_series);
+  else if (isAndes66Series(cpu))
+    add_options(andes_66_series);
+
+  return;
+}
+
+/* Append -march=new_arch to ARG_VEC based on CPU. Return true if success. */
+static bool append_cpu_march(std::string const &cpu,
+                             std::vector<std::string> &arg_vec) {
+  /* ARCH is the arch string defined in bs3/ToolConfig. It's treated as the
+     default_arch and extensions placed before the first '_' are treated as
+     the base_arch, i.e.,
+         default_arch = ARCH = rv32imfdc_zicbom_zfa...
+                               ^~~~~~~~~
+                               base_arch
+     The new_arch consists of the base_arch, cpu base & cpu addons, and the
+     andes_generic_suffix, i.e.,
+         new_arch =
+           [base_arch]_[andes_cpu_base]_[andes_cpu_*_addon]+_[andes_generic_suffix]
+
+     In general, only the base_arch part of the default_arch is unmodified
+     and transfered to the new_arch.
+     But there's one exception for Zc*:
+         - If a new_arch contains Zc*, it means that we want to override
+           RVC/Zc* defined in default_arch. Thus the base_arch will be
+           modified to remove RVC, and any Zc* in the default_arch will
+           be neglected.
+         - If a new_arch doesn't contains Zc* but the default_arch contains
+           Zc*, in additional to the unmodified base_arch, all Zc* will be
+           picked from the default_arch to new_arch.
+     E.g.,
+         [default_arch]    +  [cpu_base]  =  [new_arch]
+         rv32imfdc         +  zca         =  rv32imfd_zca
+         rv32imfd_zca_zcf  +  zca         =  rv32imfd_zca
+         rv32imfd_zca_zcf  +  zimop       =  rv32imfd_zimop_zca_zcf
+  */
+  static const std::string andes_generic_suffix = "_zicsr_zifencei_xandes";
+  /* Andes cores.
+     Each entry of a table should start with a "_" unless it's a empty
+     string.
+     Please only define Zc* if a cpu need to override the RVC/Zc* settings
+     in the default_arch.
+  */
+  static const std::string andes_23_base =
+    "_zicbop_zicbom_zicboz_zca_zcb_zcmp_zcmt_zba_zbb_zbc_zbs";
+  static const std::vector<std::string> andes_23_float_addon = {
+    "",     // v5
+    "_zcf", // v5f
+    "_zcf"  // v5d, do not use zcd since it conflicts with zcmp/zcmt
+  };
+  static const std::string andes_45_base =
+    "_zicbom_zicbop_zicboz_zba_zbb_zbc_zbkb_zbkc_zbkx_zbs"
+    "_zkn_zknd_zkne_zknh_zks_zksed_zksh_svinval";
+  static const std::vector<std::string> andes_45_float_addon = {
+    "",  // v5
+    "",  // v5f
+    ""   // v5d
+  };
+  static const std::string andes_60_base = 
+    "";
+  static const std::vector<std::string> andes_60_float_addon = {
+    "",  // v5
+    "",  // v5f
+    ""   // v5d
+  };
+  static const std::string andes_66_base =
+    "_zic64b_zicbom_zicbop_zicbo_ziccamoa_ziccif_zicclsm_ziccrse_zicfilp"
+    "_zicfiss_zicntr_zicond_zihintntl_zihintpause_zihpm_zimop_zba_zbb_zbc_zbs"
+    "_zmmul_zca_zcb_zcmop"
+    "_sha_shcounterenw_shgatpa_shtvala_shvsatpa_shvstvala_shvstvecd_ssccptr"
+    "_sscofpmf_sscounterenw_ssnpm_sspm_ssstateen_ssstrict_sstc_sstvala_"
+    "sstvecd"
+    "_ssu64xl_supm_svade_svbare_svinval_svnapot_svpbmt_svvptc_xandesperf_"
+    "xandesvdot_xandesvqmac";
+  static const std::vector<std::string> andes_66_float_addon = {
+    "",            // v5
+    "_zfa_zcf",    // v5f
+    "_zfa_zcf_zcd" // v5d
+  };
+  static const std::vector<std::string> andes_66_atomic_addon = {
+    "",                                  // elf toolchain
+    "_za64rs_zaamo_zalrsc_zama16b_zawrs" // linux toolchain
+  };
+
+  // ARCH is expected to be in canonical form for the base extensions, e.g.,
+  //   ok: rv32imfdc_...
+  //   ng: rv32im_zifencei_fd_c_...
+  constexpr std::string_view default_arch = ARCH;
+  if constexpr (default_arch.empty())
+    return false;
+
+  constexpr std::string_view base_arch =
+      default_arch.substr(0, default_arch.find("_"));
+  constexpr unsigned has_atomic = (base_arch.find("a") != std::string::npos);
+  constexpr bool is_rv32 = (base_arch.find("rv32") != std::string::npos);
+
+  auto get_float_level = [base_arch]() constexpr -> unsigned {
+    if constexpr (base_arch.find("d") != std::string::npos)
+      return 2;
+    if constexpr (base_arch.find("f") != std::string::npos)
+      return 1;
+    return 0;
+  };
+  constexpr unsigned float_config = get_float_level();
+
+  // new_arch = [andes_cpu_base]_[andes_cpu_*_addon]+
+  std::string new_arch = "";
+  if (isAndes23Series(cpu)) {
+    new_arch += andes_23_base;
+    new_arch += andes_23_float_addon[float_config];
+  } else if (isAndes45Series(cpu)) {
+    new_arch += andes_45_base;
+    new_arch += andes_45_float_addon[float_config];
+  } else if (isAndes60Series(cpu)) {
+    new_arch += andes_60_base;
+    new_arch += andes_60_float_addon[float_config];
+  } else if (isAndes66Series(cpu)) {
+    new_arch += andes_66_base;
+    new_arch += andes_66_float_addon[float_config];
+    new_arch += andes_66_atomic_addon[has_atomic];
+  } else {
+    // Do not add march for invalid cpu name.
+    return false;
+  }
+
+  // new_arch = [andes_cpu_base]_[andes_cpu_*_addon]+_[andes_generic_suffix]
+  new_arch += andes_generic_suffix;
+
+  auto string_contains_p = [](const std::string &s, const char *ext) -> bool {
+    if (s.find(ext) != std::string::npos)
+      return true;
+    return false;
+  };
+
+  // Extract all Zc from string s.
+  // TODO: Optimize it to a compile-time string. It's tricky to do it with C++,
+  //       so probably do it through configure.
+  auto zc_scavenger = [](const std::string s) -> std::string {
+    // This could be done by a single regex '(_zc[^_]+)+' or '(zc[^_]+_)+'
+    // when the arch string is in canonical form. But implement it this
+    // way can support chaotic arch strings like rv32if_zca_zifencei_zcf.
+    std::regex re("zc[^_]+");
+    std::smatch m;
+    std::string result = "";
+    std::string::const_iterator searchStart(s.cbegin());
+    while (std::regex_search(searchStart, s.cend(), m, re)) {
+      result += "_" + m[0].str();
+      searchStart = m.suffix().first;
+    }
+
+    return result;
+  };
+
+  // new_arch =
+  // [base_arch]_[andes_cpu_base]_[andes_cpu_*_addon]+_[andes_generic_suffix]
+  if (string_contains_p(new_arch, "zca")) {
+    // Remove RVC in base_arch, and use whatever Zc* defined in new_arch
+    new_arch = "-march="
+               + std::regex_replace(std::string(base_arch), std::regex("c"), "")
+               + new_arch;
+  } else {
+    // Use the original base_arch and pick all Zc* from default_arch.
+    new_arch = "-march="
+               + std::string(base_arch)
+               + zc_scavenger(std::string(default_arch))
+               + new_arch;
+  }
+
+  // Post process
+  if constexpr (!is_rv32)
+    new_arch = std::regex_replace(new_arch, std::regex("_zcf"), "");
+
+  new_arch = std::regex_replace(new_arch, std::regex("__+"), "_");
+
+  arg_vec.push_back(new_arch);
+  return true;
+}
 
 int main(int argc, const char * const argv[])
 {
@@ -30,14 +263,36 @@ int main(int argc, const char * const argv[])
   char *dir = dirname(self_path);
 
   bool verbose = false;
-  for (int i = 0; i < argc; ++i) {
-    if ((strcmp (argv[i], "-v") == 0) ||
-        (strcmp (argv[i], "--verbose") == 0)) {
+  std::vector<std::string> extra_arg_vec;
+
+  std::vector<std::string> all_args;
+  all_args.assign(argv, argv + argc);
+
+  std::string cpu;
+  bool has_march = false;
+  for (auto E : all_args) {
+    if (E.find("-mcpu=") != std::string::npos) {
+      // Only the last mcpu takes effect.
+      cpu = E.substr(6);
+    }
+    if (E.find("-march=") != std::string::npos) {
+      has_march = true;
+    }
+    if (E == "-v" || E == "--verbose") {
       verbose = true;
     }
   }
 
-  std::vector<std::string> extra_arg_vec;
+  /* The priotity of march is: user specified > mcpu expansion > ARCH. */
+  if (!has_march) {
+    if (!cpu.empty()) {
+      append_cpu_options(cpu, extra_arg_vec);
+      append_cpu_march(cpu, extra_arg_vec);
+    } else if (strlen(ARCH)) {
+      extra_arg_vec.push_back("-march=" ARCH);
+    }
+  }
+
   if (strcmp(LIBC, "mculib") == 0) {
     extra_arg_vec.push_back("-fno-math-errno");
   }
@@ -45,10 +300,6 @@ int main(int argc, const char * const argv[])
 #ifdef CLANGXX
   extra_arg_vec.push_back("-Wno-unused-command-line-argument");
   extra_arg_vec.push_back("-ffinite-loops");
-
-  if (strlen(ARCH)) {
-    extra_arg_vec.push_back("-march=" ARCH);
-  }
 
   if (strlen(ABI)) {
     extra_arg_vec.push_back("-mabi=" ABI);
@@ -92,12 +343,6 @@ int main(int argc, const char * const argv[])
   }
 #endif
 
-#ifdef GXX
-  if (strlen(ARCH)) {
-    extra_arg_vec.push_back("-march=" ARCH);
-  }
-#endif
-
   const char *prog;
 #ifdef CLANGXX
   if (CLANGXX) {
@@ -129,6 +374,8 @@ int main(int argc, const char * const argv[])
     new_args[i + 1] = extra_arg_vec[i].c_str();
   }
 
+  // Options specified in CMD should be added at the end of CMD, otherwise users
+  // are not able to disable options implied by wrapper.
   for (int i = 1; i < argc; ++i) {
     new_args[i + sz] = argv[i];
   }
