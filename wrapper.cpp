@@ -137,7 +137,7 @@ static bool append_cpu_march(std::string const &cpu,
     ""   // v5d
   };
   static const std::string andes_66_base =
-    "_zic64b_zicbom_zicbop_zicbo_ziccamoa_ziccif_zicclsm_ziccrse_zicfilp"
+    "_zic64b_zicbom_zicbop_zicboz_ziccamoa_ziccif_zicclsm_ziccrse_zicfilp"
     "_zicfiss_zicntr_zicond_zihintntl_zihintpause_zihpm_zimop_zba_zbb_zbc_zbs"
     "_zmmul_zca_zcb_zcmop"
     "_sha_shcounterenw_shgatpa_shtvala_shvsatpa_shvstvala_shvstvecd_ssccptr"
