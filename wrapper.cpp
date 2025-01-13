@@ -35,6 +35,13 @@ static bool isAndes45Series(std::string const &cpu) {
   return false;
 }
 
+static bool isAndes46Series(std::string const &cpu) {
+  if (cpu == "a46" || cpu == "a46mp" || cpu == "a46mpv" ||
+      cpu == "ax46" || cpu == "ax46mp" || cpu == "ax46mpv")
+    return true;
+  return false;
+}
+
 static bool isAndes60Series(std::string const &cpu) {
   if (cpu == "ax60" || cpu == "ax65")
     return true;
@@ -54,6 +61,8 @@ static void append_cpu_options(std::string const &cpu,
       "-mext-zc", "-mext-zbabcs", "-mext-cmo"};
   static const std::vector<std::string> andes_45_series = {
       "-mext-zvlsseg", "-mcmov"};
+  static const std::vector<std::string> andes_46_series = {
+      "-mext-zc", "-mext-zbabcs", "-mext-cmo", "-mext-svinval"};
   static const std::vector<std::string> andes_60_series = {
       "-mext-zbabcs", "-mext-zkns", "-mext-cmo", "-mext-svinval", "-mcmov"};
   static const std::vector<std::string> andes_66_series = {
@@ -69,6 +78,8 @@ static void append_cpu_options(std::string const &cpu,
     add_options(andes_23_series);
   else if (isAndes45Series(cpu))
     add_options(andes_45_series);
+  else if (isAndes46Series(cpu))
+    add_options(andes_46_series);
   else if (isAndes60Series(cpu))
     add_options(andes_60_series);
   else if (isAndes66Series(cpu))
@@ -129,6 +140,23 @@ static bool append_cpu_march(std::string const &cpu,
     "",  // v5f
     ""   // v5d
   };
+  static const std::string andes_46_base = 
+    "_zic64b_zicbom_zicbop_zicboz"
+    "_ziccamoa_ziccif_zicclsm_ziccrse_zicntr"
+    "_zihintpause_zihpm"
+    "_zba_zbb_zbc_zbs"
+    "_zcb_zcmp_zcmt"
+    "_ssccptr_sscounterenw_sstvala_sstvecd"
+    "_svade_svbare_svinval_svpbmt";
+  static const std::vector<std::string> andes_46_float_addon = {
+    "",                     // v5
+    "_zcf_zfbfmin_zfhmin",  // v5f
+    "_zcf_zfbfmin_zfhmin"   // v5d, use zcmp/zcmt
+  };
+  static const std::vector<std::string> andes_46_atomic_addon = {
+    "",                    // elf toolchain
+    "_za64rs_zaamo_zalrsc" // linux toolchain
+  };
   static const std::string andes_60_base = 
     "";
   static const std::vector<std::string> andes_60_float_addon = {
@@ -184,6 +212,10 @@ static bool append_cpu_march(std::string const &cpu,
   } else if (isAndes45Series(cpu)) {
     new_arch += andes_45_base;
     new_arch += andes_45_float_addon[float_config];
+  } else if (isAndes46Series(cpu)) {
+    new_arch += andes_46_base;
+    new_arch += andes_46_float_addon[float_config];
+    new_arch += andes_46_atomic_addon[has_atomic];
   } else if (isAndes60Series(cpu)) {
     new_arch += andes_60_base;
     new_arch += andes_60_float_addon[float_config];
