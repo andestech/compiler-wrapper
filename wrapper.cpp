@@ -120,10 +120,11 @@ static bool append_cpu_march(std::string const &cpu,
   */
   static const std::string andes_generic_suffix = "_zicsr_zifencei_xandes";
   /* Andes cores.
-     Each entry of a table should start with a "_" unless it's a empty
-     string.
-     Please only define Zc* if a cpu need to override the RVC/Zc* settings
-     in the default_arch.
+     - Each entry of a table should start with a "_" unless it's a empty
+       string.
+     - Only define Zc* if a cpu need to override the RVC/Zc* settings
+       in the default_arch.
+     - Testcases are placed in exter-gcc-testsuite.
   */
   static const std::string andes_23_base =
     "_zicbop_zicbom_zicboz_zca_zcb_zcmp_zcmt_zba_zbb_zbc_zbs";
@@ -133,8 +134,7 @@ static bool append_cpu_march(std::string const &cpu,
     "_zcf"  // v5d, do not use zcd since it conflicts with zcmp/zcmt
   };
   static const std::string andes_45_base =
-    "_zicbom_zicbop_zicboz_zba_zbb_zbc_zbkb_zbkc_zbkx_zbs"
-    "_zkn_zknd_zkne_zknh_zks_zksed_zksh_svinval";
+    "_zicbom_zicbop_zicboz_zba_zbb_zbc_zbs_svinval";
   static const std::vector<std::string> andes_45_float_addon = {
     "",  // v5
     "",  // v5f
