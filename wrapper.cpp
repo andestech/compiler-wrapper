@@ -310,7 +310,7 @@ int main(int argc, const char * const argv[])
     if (E.find("-march=") != std::string::npos) {
       has_march = true;
     }
-    if (E == "-v" || E == "--verbose") {
+    if (E == "-v" || E == "--verbose" || E == "-###") {
       verbose = true;
     }
   }
@@ -419,6 +419,7 @@ int main(int argc, const char * const argv[])
 #endif
 
   if (verbose) {
+    printf("AST_WRAPPER: ");
     for (int i = 0; i < new_argc; i++) {
       printf ("\"%s\" ", new_args[i]);
     }
