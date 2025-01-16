@@ -294,6 +294,7 @@ int main(int argc, const char * const argv[])
    * be desirable to pass a copy when calling one of these functions.  */
   char *dir = dirname(self_path);
 
+  bool minimal = false;
   bool verbose = false;
   std::vector<std::string> extra_arg_vec;
 
@@ -302,17 +303,24 @@ int main(int argc, const char * const argv[])
 
   std::string cpu;
   bool has_march = false;
-  for (auto E : all_args) {
-    if (E.find("-mcpu=") != std::string::npos) {
+  for (auto E = all_args.begin(); E != all_args.end();) {
+    if (E->find("-mcpu=") != std::string::npos) {
       // Only the last mcpu takes effect.
-      cpu = E.substr(6);
+      cpu = E->substr(6);
     }
-    if (E.find("-march=") != std::string::npos) {
+    if (E->find("-march=") != std::string::npos) {
       has_march = true;
     }
-    if (E == "-v" || E == "--verbose" || E == "-###") {
+    if (*E == "-v" || *E == "--verbose" || *E == "-###") {
       verbose = true;
     }
+    if (*E == "--wrapper-minimal-mode") {
+      minimal = true;
+      // Consume the option
+      E = all_args.erase(E);
+      continue;
+    }
+    ++E;    
   }
 
   /* The priotity of march is: user specified > mcpu expansion > ARCH. */
@@ -325,13 +333,33 @@ int main(int argc, const char * const argv[])
     }
   }
 
-  if (strcmp(LIBC, "mculib") == 0) {
-    extra_arg_vec.push_back("-fno-math-errno");
+#ifdef CLANGXX
+  // Workaround: The wrapper option --wrapper-minimal-mode aims to call compiler
+  // drivers without any optimization flags. However, as bs3 always calls Clang
+  // through wrapper, we made Clang-wrapper neglect the option for now to match
+  // the behavior before this patch.
+  minimal = false;
+#endif
+
+  if (!minimal) {
+    // Extra optimization flags for both GXX & CLANGXX
+    if (strcmp(LIBC, "mculib") == 0) {
+      extra_arg_vec.push_back("-fno-math-errno");
+    }
+
+    // Extra optimization flags for CLANGXX
+#ifdef CLANGXX
+    extra_arg_vec.push_back("-ffinite-loops");
+    extra_arg_vec.push_back("-ffp-contract=fast");
+#endif
+
+    // Extra optimization flags for GXX
+#ifdef GXX
+#endif
   }
 
 #ifdef CLANGXX
   extra_arg_vec.push_back("-Wno-unused-command-line-argument");
-  extra_arg_vec.push_back("-ffinite-loops");
 
   if (strlen(ABI)) {
     extra_arg_vec.push_back("-mabi=" ABI);
@@ -365,8 +393,6 @@ int main(int argc, const char * const argv[])
     extra_arg_vec.push_back(EXTRA_FLAGS);
   }
 
-  extra_arg_vec.push_back("-ffp-contract=fast");
-
   if (strlen(REL_SYSROOT)) {
     std::string sysroot = dir;
     sysroot += "/";
@@ -391,8 +417,8 @@ int main(int argc, const char * const argv[])
   }
 #endif
 
-  int new_argc = argc + extra_arg_vec.size();
-  const char **new_args = new const char *[new_argc + 1];
+  int new_argc = all_args.size() + extra_arg_vec.size();
+  const char **new_args = new const char *[new_argc];
   char *cc_path = new char[strlen(self_path) + strlen(prog) + 2];
 
   strcpy (cc_path, dir);
@@ -408,8 +434,8 @@ int main(int argc, const char * const argv[])
 
   // Options specified in CMD should be added at the end of CMD, otherwise users
   // are not able to disable options implied by wrapper.
-  for (int i = 1; i < argc; ++i) {
-    new_args[i + sz] = argv[i];
+  for (int i = 1; i < all_args.size(); ++i) {
+    new_args[i + sz] = all_args[i].c_str();
   }
 
   new_args[new_argc] = NULL;
