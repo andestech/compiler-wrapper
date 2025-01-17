@@ -418,7 +418,7 @@ int main(int argc, const char * const argv[])
 #endif
 
   int new_argc = all_args.size() + extra_arg_vec.size();
-  const char **new_args = new const char *[new_argc];
+  const char **new_args = new const char *[new_argc + 1];
   char *cc_path = new char[strlen(self_path) + strlen(prog) + 2];
 
   strcpy (cc_path, dir);
