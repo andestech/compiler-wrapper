@@ -224,7 +224,7 @@ static bool append_cpu_march(std::string const &cpu,
     new_arch += andes_66_float_addon[float_config];
     new_arch += andes_66_atomic_addon[has_atomic];
   } else {
-    // Do not add march for invalid cpu name.
+    // Use the default ARCH.
     return false;
   }
 
@@ -325,9 +325,8 @@ int main(int argc, const char * const argv[])
 
   /* The priotity of march is: user specified > mcpu expansion > ARCH. */
   if (!has_march) {
-    if (!cpu.empty()) {
+    if (append_cpu_march(cpu, extra_arg_vec)) {
       append_cpu_options(cpu, extra_arg_vec);
-      append_cpu_march(cpu, extra_arg_vec);
     } else if (strlen(ARCH)) {
       extra_arg_vec.push_back("-march=" ARCH);
     }
