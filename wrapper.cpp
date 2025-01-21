@@ -91,6 +91,8 @@ static void append_cpu_options(std::string const &cpu,
 /* Append -march=new_arch to ARG_VEC based on CPU. Return true if success. */
 static bool append_cpu_march(std::string const &cpu,
                              std::vector<std::string> &arg_vec) {
+  if (cpu.empty())
+    return false;
   /* ARCH is the arch string defined in bs3/ToolConfig. It's treated as the
      default_arch and extensions placed before the first '_' are treated as
      the base_arch, i.e.,
@@ -132,13 +134,6 @@ static bool append_cpu_march(std::string const &cpu,
     "",     // v5
     "_zcf", // v5f
     "_zcf"  // v5d, do not use zcd since it conflicts with zcmp/zcmt
-  };
-  static const std::string andes_45_base =
-    "_zicbom_zicbop_zicboz_zba_zbb_zbc_zbs_svinval";
-  static const std::vector<std::string> andes_45_float_addon = {
-    "",  // v5
-    "",  // v5f
-    ""   // v5d
   };
   static const std::string andes_46_base = 
     "_zic64b_zicbom_zicbop_zicboz"
@@ -187,8 +182,7 @@ static bool append_cpu_march(std::string const &cpu,
   //   ok: rv32imfdc_...
   //   ng: rv32im_zifencei_fd_c_...
   constexpr std::string_view default_arch = ARCH;
-  if constexpr (default_arch.empty())
-    return false;
+  static_assert (!default_arch.empty(), "unexpected empty ARCH!");
 
   constexpr std::string_view base_arch =
       default_arch.substr(0, default_arch.find("_"));
@@ -209,9 +203,6 @@ static bool append_cpu_march(std::string const &cpu,
   if (isAndes23Series(cpu)) {
     new_arch += andes_23_base;
     new_arch += andes_23_float_addon[float_config];
-  } else if (isAndes45Series(cpu)) {
-    new_arch += andes_45_base;
-    new_arch += andes_45_float_addon[float_config];
   } else if (isAndes46Series(cpu)) {
     new_arch += andes_46_base;
     new_arch += andes_46_float_addon[float_config];
@@ -325,12 +316,11 @@ int main(int argc, const char * const argv[])
 
   /* The priotity of march is: user specified > mcpu expansion > ARCH. */
   if (!has_march) {
-    if (append_cpu_march(cpu, extra_arg_vec)) {
-      append_cpu_options(cpu, extra_arg_vec);
-    } else if (strlen(ARCH)) {
+    if (!append_cpu_march(cpu, extra_arg_vec)) {
       extra_arg_vec.push_back("-march=" ARCH);
     }
   }
+  append_cpu_options(cpu, extra_arg_vec);
 
 #ifdef CLANGXX
   // Workaround: The wrapper option --wrapper-minimal-mode aims to call compiler
