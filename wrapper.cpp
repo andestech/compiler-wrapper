@@ -315,11 +315,9 @@ int main(int argc, const char * const argv[])
   }
 
   /* The priotity of march is: user specified > mcpu expansion > ARCH. */
-  if (!has_march) {
-    if (!append_cpu_march(cpu, extra_arg_vec)) {
-      extra_arg_vec.push_back("-march=" ARCH);
-    }
-  }
+  if (!has_march)
+    has_march |= append_cpu_march(cpu, extra_arg_vec);
+  /* Always add cpu -mext-* options to prevent multilib issues.  */
   append_cpu_options(cpu, extra_arg_vec);
 
 #ifdef CLANGXX
@@ -330,7 +328,12 @@ int main(int argc, const char * const argv[])
   minimal = false;
 #endif
 
+  // Minimal-mode disables optimization flags and the default march (-march=ARCH)
+  // but still allows expanding -mcpu to -march & -mext options.
   if (!minimal) {
+    if (!has_march)
+      extra_arg_vec.push_back("-march=" ARCH);
+
     // Extra optimization flags for both GXX & CLANGXX
     if (strcmp(LIBC, "mculib") == 0) {
       extra_arg_vec.push_back("-fno-math-errno");
