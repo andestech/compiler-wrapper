@@ -107,11 +107,11 @@ static bool append_cpu_march(std::string const &cpu,
      In general, only the base_arch part of the default_arch is unmodified
      and transfered to the new_arch.
      But there's one exception for Zc*:
-         - If a new_arch contains Zc*, it means that we want to override
+         - If a new_arch contains Zca, it means that we want to override
            RVC/Zc* defined in default_arch. Thus the base_arch will be
            modified to remove RVC, and any Zc* in the default_arch will
            be neglected.
-         - If a new_arch doesn't contains Zc* but the default_arch contains
+         - If a new_arch doesn't contains Zca but the default_arch contains
            Zc*, in additional to the unmodified base_arch, all Zc* will be
            picked from the default_arch to new_arch.
      E.g.,
@@ -140,7 +140,7 @@ static bool append_cpu_march(std::string const &cpu,
     "_ziccamoa_ziccif_zicclsm_ziccrse_zicntr"
     "_zihintpause_zihpm"
     "_zba_zbb_zbc_zbs"
-    "_zcb_zcmp_zcmt"
+    "_zca_zcb_zcmp_zcmt"
     "_ssccptr_sscounterenw_sstvala_sstvecd"
     "_svade_svbare_svinval_svpbmt";
   static const std::vector<std::string> andes_46_float_addon = {
