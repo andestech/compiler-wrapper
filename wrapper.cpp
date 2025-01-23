@@ -350,6 +350,11 @@ int main(int argc, const char * const argv[])
 #endif
   }
 
+  /* Disable Zcmt for Linux toolchains. */
+  constexpr std::string_view target = TARGET;
+  if constexpr (target.find("linux") != std::string::npos)
+    extra_arg_vec.push_back("-Wl,--mno-opt-table-jump");
+
 #ifdef CLANGXX
   extra_arg_vec.push_back("-Wno-unused-command-line-argument");
 
