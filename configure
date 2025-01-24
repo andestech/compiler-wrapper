@@ -9,23 +9,23 @@ this_script_path = os.path.dirname(this_script)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--with-arch=', type=str, nargs=1,
-                    help='Path to target C compiler.')
+                    help='Set the default arch')
 parser.add_argument('--with-abi=', type=str, nargs=1,
-                    help='Path to target C++ compiler.')
+                    help='Set the default abi')
 parser.add_argument('--with-libc=', type=str, nargs=1,
-                    help='Set the default libc.')
+                    help='Set the default libc')
 parser.add_argument('--with-ld=', type=str, nargs=1,
-                    help='Set the default linker.')
+                    help='Set the default linker')
 parser.add_argument('--with-sysroot=', type=str, nargs=1,
-                    help='What target triplet you want to test.')
+                    help='Set path to the sysroot')
 parser.add_argument('--target=', type=str, nargs=1,
-                    help='Path to target C compiler.')
+                    help='Set the target triple')
 parser.add_argument('--prefix=', type=str, nargs=1,
-                    help='Host C compiler.')
+                    help='Path to the installed toolchain')
 parser.add_argument('--with-host-cxx=', type=str, nargs=1,
-                    help='Host C++ compiler.')
+                    help='Host C++ compiler')
 parser.add_argument('--with-multilib-list=', type=str, nargs=1,
-                    help='multi-lib list.')
+                    help='multi-lib list')
 parser.add_argument('--with-extra-flags=', type=str, nargs=1,
                     help='Set extra flags')
 parser.add_argument('--with-libiberty-include=', type=str, nargs=1,
@@ -33,7 +33,7 @@ parser.add_argument('--with-libiberty-include=', type=str, nargs=1,
 parser.add_argument('--with-libiberty-lib=', type=str, nargs=1,
                     help='Specify the installed libiberty library')
 parser.add_argument('--compiler-wrapper=', type=str, nargs=1,
-                    help='Specify to wrapper which compiler')
+                    help='Specify which compiler to wrap')
 
 if (len(sys.argv) == 1):
     parser.print_help()
