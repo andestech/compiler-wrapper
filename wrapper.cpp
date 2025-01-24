@@ -60,9 +60,9 @@ static void append_cpu_options(std::string const &cpu,
   static const std::vector<std::string> andes_23_series = {
       "-mext-zc", "-mext-zbabcs", "-mext-cmo"};
   static const std::vector<std::string> andes_45_series = {
-      "-mcmov"};
+      "-mcmov", "-mext-zvlsseg"};
   static const std::vector<std::string> andes_46_series = {
-      "-mext-zc", "-mext-zbabcs", "-mext-cmo", "-mext-svinval"};
+      "-mext-zc", "-mext-zbabcs", "-mext-cmo", "-mext-svinval", "-mext-zvlsseg"};
   static const std::vector<std::string> andes_60_series = {
       "-mext-zbabcs", "-mext-zkns", "-mext-cmo", "-mext-svinval", "-mcmov"};
   static const std::vector<std::string> andes_66_series = {
