@@ -64,10 +64,10 @@ static void append_cpu_options(std::string const &cpu,
   static const std::vector<std::string> andes_46_series = {
       "-mext-zc", "-mext-zbabcs", "-mext-cmo", "-mext-svinval", "-mext-zvlsseg"};
   static const std::vector<std::string> andes_60_series = {
-      "-mext-zbabcs", "-mext-zkns", "-mext-cmo", "-mext-svinval", "-mcmov"};
+      "-mext-zbabcs",  "-mext-zkns", "-mext-cmo",
+      "-mext-svinval", "-mcmov",     "-mno-execit"};
   static const std::vector<std::string> andes_66_series = {
-      "-mext-cmo", "-mext-svinval"};
-
+      "-mext-cmo", "-mext-svinval", "-mno-execit"};
 
   auto add_options = [&arg_vec](const std::vector<std::string> &table) -> void {
     for (auto E : table)
