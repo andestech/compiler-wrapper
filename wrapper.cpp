@@ -295,11 +295,11 @@ int main(int argc, const char * const argv[])
   std::string cpu;
   bool has_march = false;
   for (auto E = all_args.begin(); E != all_args.end();) {
-    if (E->find("-mcpu=") != std::string::npos) {
+    if (E->rfind("-mcpu=", 0) == 0) {
       // Only the last mcpu takes effect.
       cpu = E->substr(6);
     }
-    if (E->find("-march=") != std::string::npos) {
+    if (E->rfind("-march=", 0) == 0) {
       has_march = true;
     }
     if (*E == "-v" || *E == "--verbose" || *E == "-###") {
