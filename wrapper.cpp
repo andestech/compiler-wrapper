@@ -294,6 +294,9 @@ int main(int argc, const char * const argv[])
 
   std::string cpu;
   bool has_march = false;
+  bool has_mext_vector = false;
+  bool has_explicit_zvl = false;
+
   for (auto E = all_args.begin(); E != all_args.end();) {
     if (E->rfind("-mcpu=", 0) == 0) {
       // Only the last mcpu takes effect.
@@ -304,6 +307,13 @@ int main(int argc, const char * const argv[])
     }
     if (*E == "-v" || *E == "--verbose" || *E == "-###") {
       verbose = true;
+    }
+    if (E->rfind("-mext-vector", 0) == 0) {
+      has_mext_vector = true;
+      auto Pos = E->find('=');
+      if (Pos != std::string::npos && Pos + 1 < E->size()) {
+        has_explicit_zvl = true;
+      }
     }
     if (*E == "--wrapper-minimal-mode") {
       minimal = true;
@@ -347,6 +357,10 @@ int main(int argc, const char * const argv[])
 
     // Extra optimization flags for GXX
 #ifdef GXX
+    extra_arg_vec.push_back("-mrvv-max-lmul=dynamic");
+    if (!has_explicit_zvl) {
+      extra_arg_vec.push_back("-mno-enable-unrolled-vls");
+    }
 #endif
   }
 
