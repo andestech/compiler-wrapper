@@ -21,6 +21,12 @@ std::string getMainExecutableImpl(const char *argv0, void *MainAddr);
 
 /* CPU names must match according entries in
  * riscv-cores.def/NDSRISCVProcessors.td for GCC/LLVM. */
+ static bool isAndes225Series(std::string const &cpu) {
+  if (cpu == "n225")
+    return true;
+  return false;
+}
+
 static bool isAndes23Series(std::string const &cpu) {
   if (cpu == "d23")
     return true;
@@ -59,6 +65,8 @@ static void append_cpu_options(std::string const &cpu,
                                std::vector<std::string> &arg_vec) {
   static const std::vector<std::string> andes_23_series = {
       "-mext-zc", "-mext-zbabcs", "-mext-cmo"};
+  static const std::vector<std::string> andes_225_series = {
+      "-mext-zc", "-mext-zbabcs"};
   static const std::vector<std::string> andes_45_series = {
       "-mcmov", "-mext-zvlsseg"};
   static const std::vector<std::string> andes_46_series = {
@@ -76,6 +84,8 @@ static void append_cpu_options(std::string const &cpu,
 
   if (isAndes23Series(cpu))
     add_options(andes_23_series);
+  else if (isAndes225Series(cpu))
+    add_options(andes_225_series);
   else if (isAndes45Series(cpu))
     add_options(andes_45_series);
   else if (isAndes46Series(cpu))
@@ -131,6 +141,13 @@ static bool append_cpu_march(std::string const &cpu,
   static const std::string andes_23_base =
     "_zicbop_zicbom_zicboz_zca_zcb_zcmp_zcmt_zba_zbb_zbc_zbs";
   static const std::vector<std::string> andes_23_float_addon = {
+    "",     // v5
+    "_zcf", // v5f
+    "_zcf"  // v5d, do not use zcd since it conflicts with zcmp/zcmt
+  };
+  static const std::string andes_225_base =
+    "_zca_zcb_zcmp_zcmt_zba_zbb_zbc_zbs";
+  static const std::vector<std::string> andes_225_float_addon = {
     "",     // v5
     "_zcf", // v5f
     "_zcf"  // v5d, do not use zcd since it conflicts with zcmp/zcmt
@@ -203,6 +220,9 @@ static bool append_cpu_march(std::string const &cpu,
   if (isAndes23Series(cpu)) {
     new_arch += andes_23_base;
     new_arch += andes_23_float_addon[float_config];
+  } else if (isAndes225Series(cpu)) {
+    new_arch += andes_225_base;
+    new_arch += andes_225_float_addon[float_config];
   } else if (isAndes46Series(cpu)) {
     new_arch += andes_46_base;
     new_arch += andes_46_float_addon[float_config];
