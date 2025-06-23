@@ -29,8 +29,8 @@ static bool isAndes23Series(std::string const &cpu) {
 
 static bool isAndes45Series(std::string const &cpu) {
   if (cpu == "a45" || cpu == "ax45" || cpu == "ax45mpv" || cpu == "n45" ||
-      cpu == "n45f" || cpu == "nx45" || cpu == "nx45v" || cpu == "d45" ||
-      cpu == "d45f" || cpu == "nx45f")
+      cpu == "nx45" || cpu == "nx45v" || cpu == "d45" || cpu == "a45mp" ||
+      cpu == "ax45mp")
     return true;
   return false;
 }
