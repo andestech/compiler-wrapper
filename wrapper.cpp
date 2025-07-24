@@ -377,7 +377,7 @@ int main(int argc, const char * const argv[])
 
     // Extra optimization flags for GXX
 #ifdef GXX
-    extra_arg_vec.push_back("-mrvv-max-lmul=dynamic");
+    extra_arg_vec.push_back("-mrvv-max-lmul=m2");
     if (!has_explicit_zvl) {
       extra_arg_vec.push_back("-mno-enable-unrolled-vls");
     }
