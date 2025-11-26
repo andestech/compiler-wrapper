@@ -1,0 +1,35 @@
+This project uses a collection of software from several sources.  Each file or
+directory have its own copyright/license.
+
+(1) Free Software Foundation LGPL License
+
+The include and libiberty directories are from GCC project and the license file
+is located at libiberty/COPYING.LIB.
+
+(2) Apache License v2.0 with LLVM Exceptions
+
+The path.cpp is from LLVM project, under the Apache License v2.0 with LLVM
+Exceptions.
+
+See https://llvm.org/LICENSE.txt for license information.
+
+(3) Andestech
+
+The wrapper.cpp is developed at Andestech, Inc.
+
+/******************************************************************************
+ * Copyright (C) 2017-2025 Andes Technology Corporation                       *
+ * All rights reserved.                                                       *
+ *                                                                            *
+ * Licensed under the Apache License, Version 2.0 (the License);              *
+ * you may not use this file except in compliance with the License.           *
+ * You may obtain a copy of the License at                                    *
+ *                                                                            *
+ * www.apache.org/licenses/LICENSE-2.0                                        *
+ *                                                                            *
+ * Unless required by applicable law or agreed to in writing, software        *
+ * distributed under the License is distributed on an AS IS BASIS,            *
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   *
+ * See the License for the specific language governing permissions and        *
+ * limitations under the License.                                             *
+ ******************************************************************************/
