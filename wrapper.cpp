@@ -223,7 +223,7 @@ static bool append_cpu_march(std::string const &cpu,
   constexpr unsigned has_atomic = (base_arch.find("a") != std::string::npos);
   constexpr bool is_rv32 = (base_arch.find("rv32") != std::string::npos);
 
-  auto get_float_level = [base_arch]() constexpr -> unsigned {
+  constexpr auto get_float_level = [base_arch]() constexpr -> unsigned {
     if constexpr (base_arch.find("d") != std::string::npos)
       return 2;
     if constexpr (base_arch.find("f") != std::string::npos)
